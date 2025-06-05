@@ -1,3 +1,6 @@
 /DIV2K_train_HR/
 /checkpoints/
 /comparison_outputs/
+/comparison_ffct_output/
+/checkpoints_ffct/
+/good_models/

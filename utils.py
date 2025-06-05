@@ -25,16 +25,18 @@ def pad_to_multiple(x, multiple=64):
     pad_w = (multiple - w % multiple) % multiple
     return F.pad(x, (0, pad_w, 0, pad_h)), (h, w)
 
-def save_checkpoint(model, optimizer, epoch, path):
+def save_checkpoint(model, optimizer, path):
     torch.save({
         'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'epoch': epoch
+        'optimizer_state_dict': optimizer.state_dict()
     }, path)
+    print("Saved Model and Optimizer state dicts successfully!")
 
 def load_checkpoint(model, optimizer, checkpoint_path, device="cuda"):
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
-    model = model.load_state_dict(checkpoint["model_state_dict"])
-    optimizer = optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    return model, optimizer
+    model.load_state_dict(checkpoint["model_state_dict"])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+    print("✅ Loaded Model and Optimizer state dicts successfully!")

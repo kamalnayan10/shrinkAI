@@ -2,9 +2,10 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 from gdn import GDN
+from ffct import FFCTranspose
 
 class Encoder(nn.Module):
-    def __init__(self, in_channels, dim, latent_channels = 192):
+    def __init__(self, in_channels, dim, latent_channels = 192, alpha = 0.5):
         super().__init__()
         self.enc1 = nn.Sequential(
             nn.Conv2d(in_channels, dim, kernel_size=3, stride=2, padding=1), # 128x128
@@ -32,22 +33,38 @@ class Encoder(nn.Module):
         return z
 
 class Decoder(nn.Module):
-    def __init__(self, latent_channels, dim, out_channels):
+    def __init__(self, latent_channels, dim, out_channels, alpha = 0.5):
         super().__init__()
+        # self.dec1 = nn.Sequential(
+        #     nn.ConvTranspose2d(latent_channels, dim*2*2, kernel_size = 3, stride = 2, padding = 1, output_padding=1), # 32x32
+        #     GDN(dim*2*2, inverse=True)
+        # )
+        # self.dec2 = nn.Sequential(
+        #     nn.ConvTranspose2d(dim*2*2, dim*2, kernel_size = 3, stride = 2, padding = 1, output_padding=1), # 64x64
+        #     GDN(dim*2, inverse=True)
+        # )
+        # self.dec3 = nn.Sequential(
+        #     nn.ConvTranspose2d(dim*2, dim, kernel_size = 3, stride = 2, padding = 1, output_padding=1), # 128x128
+        #     GDN(dim, inverse=True)
+        # )
+        # self.dec4 = nn.Sequential(
+        #     nn.ConvTranspose2d(dim, out_channels, kernel_size = 3, stride = 2, padding = 1, output_padding=1), # 256x256
+        #     nn.Tanh()
+        # )
         self.dec1 = nn.Sequential(
-            nn.ConvTranspose2d(latent_channels, dim*2*2, kernel_size = 3, stride = 2, padding = 1, output_padding=1),
+            FFCTranspose(latent_channels, dim*2*2,alpha = alpha), # 32x32
             GDN(dim*2*2, inverse=True)
         )
         self.dec2 = nn.Sequential(
-            nn.ConvTranspose2d(dim*2*2, dim*2, kernel_size = 3, stride = 2, padding = 1, output_padding=1),
+            FFCTranspose(dim*2*2, dim*2,alpha = alpha), # 64x64
             GDN(dim*2, inverse=True)
         )
         self.dec3 = nn.Sequential(
-            nn.ConvTranspose2d(dim*2, dim, kernel_size = 3, stride = 2, padding = 1, output_padding=1),
+            FFCTranspose(dim*2, dim,alpha = alpha), # 128x128
             GDN(dim, inverse=True)
         )
         self.dec4 = nn.Sequential(
-            nn.ConvTranspose2d(dim, out_channels, kernel_size = 3, stride = 2, padding = 1, output_padding=1),
+            FFCTranspose(dim, out_channels,alpha = alpha), # 256x256
             nn.Tanh()
         )
 
@@ -60,7 +77,7 @@ class Decoder(nn.Module):
         return x_hat
 
 class HyperEncoder(nn.Module):
-    def __init__(self, latent_channels=192, z_channels=96):
+    def __init__(self, latent_channels=192, z_channels=96, alpha = 0.5):
         super().__init__()
         self.net = nn.Sequential(
             nn.Conv2d(latent_channels, latent_channels, kernel_size=3, stride=2, padding=1),
@@ -75,21 +92,27 @@ class HyperEncoder(nn.Module):
         return z
 
 class HyperDecoder(nn.Module):
-    def __init__(self, latent_channels=192, z_channels=96):
+    def __init__(self, latent_channels=192, z_channels=96, alpha = 0.5):
         super().__init__()
+        # self.net = nn.Sequential(
+        #     nn.ConvTranspose2d(z_channels, latent_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+        #     nn.ReLU(inplace=True),
+        #     nn.ConvTranspose2d(latent_channels, latent_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+        #     nn.ReLU(inplace=True),
+        #     nn.ConvTranspose2d(latent_channels, latent_channels * 2, kernel_size=3, stride=2, padding=1, output_padding=1)
+        # )
         self.net = nn.Sequential(
-            nn.ConvTranspose2d(z_channels, latent_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+            FFCTranspose(z_channels, latent_channels, alpha),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(latent_channels, latent_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+            FFCTranspose(latent_channels, latent_channels, alpha),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(latent_channels, latent_channels * 2, kernel_size=3, stride=2, padding=1, output_padding=1)
+            FFCTranspose(latent_channels, latent_channels * 2, alpha)
         )
     
     def forward(self, z_hat):
-        # Output will be [B, 2 * latent_channels, H, W]
         gaussian_params = self.net(z_hat)
         mu, sigma = torch.chunk(gaussian_params, chunks=2, dim=1)
-        return mu, F.softplus(sigma) + 1e-6  # Ensure sigma is positive
+        return mu, F.softplus(sigma) + 1e-6 
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
