@@ -29,7 +29,7 @@ class GDN(nn.Module):
   
     def __init__(self,
                  ch,
-                 device = "cuda",
+                 device = "cpu",
                  inverse=False,
                  beta_min=1e-6,
                  gamma_init=.1,

@@ -5,19 +5,19 @@ from gdn import GDN
 from ffct import FFCTranspose
 
 class Encoder(nn.Module):
-    def __init__(self, in_channels, dim, latent_channels = 192, alpha = 0.5):
+    def __init__(self, in_channels, dim, latent_channels = 192, alpha = 0.5, device = "cpu"):
         super().__init__()
         self.enc1 = nn.Sequential(
             nn.Conv2d(in_channels, dim, kernel_size=3, stride=2, padding=1), # 128x128
-            GDN(dim)
+            GDN(dim, device = device)
         )
         self.enc2 = nn.Sequential(
             nn.Conv2d(dim, dim*2, kernel_size=3, stride=2, padding=1), # 64x64
-            GDN(dim*2)
+            GDN(dim*2, device = device)
         )
         self.enc3 = nn.Sequential(
             nn.Conv2d(dim*2, dim*2*2, kernel_size=3, stride=2, padding=1), # 32x32
-            GDN(dim*2*2)
+            GDN(dim*2*2, device = device)
         )
         self.enc4 = nn.Sequential(
             nn.Conv2d(dim*2*2, latent_channels, kernel_size=3, stride = 2,padding=1), # 16x16
@@ -33,7 +33,7 @@ class Encoder(nn.Module):
         return z
 
 class Decoder(nn.Module):
-    def __init__(self, latent_channels, dim, out_channels, alpha = 0.5):
+    def __init__(self, latent_channels, dim, out_channels, alpha = 0.5, device = "cpu"):
         super().__init__()
         # self.dec1 = nn.Sequential(
         #     nn.ConvTranspose2d(latent_channels, dim*2*2, kernel_size = 3, stride = 2, padding = 1, output_padding=1), # 32x32
@@ -53,15 +53,15 @@ class Decoder(nn.Module):
         # )
         self.dec1 = nn.Sequential(
             FFCTranspose(latent_channels, dim*2*2,alpha = alpha), # 32x32
-            GDN(dim*2*2, inverse=True)
+            GDN(dim*2*2, inverse=True, device = device)
         )
         self.dec2 = nn.Sequential(
             FFCTranspose(dim*2*2, dim*2,alpha = alpha), # 64x64
-            GDN(dim*2, inverse=True)
+            GDN(dim*2, inverse=True, device = device)
         )
         self.dec3 = nn.Sequential(
             FFCTranspose(dim*2, dim,alpha = alpha), # 128x128
-            GDN(dim, inverse=True)
+            GDN(dim, inverse=True, device = device)
         )
         self.dec4 = nn.Sequential(
             FFCTranspose(dim, out_channels,alpha = alpha), # 256x256

@@ -34,8 +34,8 @@ Reconstructed Image
 
 | Metric        | Value                   |
 | ------------- | ----------------------- |
-| **BPP**       | 0.70                    |
-| **PSNR**      | 25.46 dB                |
+| **BPP**       | 0.83                    |
+| **PSNR**      | 26.01 dB                |
 | **Dataset**   | DIV2K (256×256 patches) |
 | **Framework** | PyTorch + CompressAI    |
 
@@ -84,6 +84,20 @@ Reconstructed Image
 ```bash
 git clone https://github.com/kamalnayan10/shrinkAI
 cd shrinkAI
+```
+
+### CLI Utility
+
+compression
+
+```bash
+python compress.py --input test.png --output compressed.bin
+```
+
+decompression
+
+```bash
+python decompress.py --input compressed.bin --output test_output.png
 ```
 
 ### 🙌 Acknowledgements

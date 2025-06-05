@@ -4,13 +4,13 @@ from model import Encoder, Decoder, HyperEncoder, HyperDecoder
 from compressai.entropy_models import EntropyBottleneck, GaussianConditional
 
 class Compression(nn.Module):
-    def __init__(self, in_channels, dim, latent_channels, out_channels, z_channels= 96):
+    def __init__(self, in_channels, dim, latent_channels, out_channels, z_channels= 96, device = "cpu"):
         super().__init__()
 
-        self.encoder = Encoder(in_channels, dim, latent_channels)
+        self.encoder = Encoder(in_channels, dim, latent_channels, device = device)
         self.h_enc = HyperEncoder(latent_channels, z_channels)
         self.h_dec = HyperDecoder(latent_channels, z_channels)
-        self.decoder = Decoder(latent_channels, dim, out_channels)
+        self.decoder = Decoder(latent_channels, dim, out_channels, device = device)
         self.entropy_bottleneck = EntropyBottleneck(z_channels)
         self.gaussian_cond = GaussianConditional(None)
 
