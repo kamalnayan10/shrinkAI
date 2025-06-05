@@ -99,6 +99,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+You can download pretrained weights from the following link:
+
+🔗 [Download Weights (Google Drive)](https://drive.google.com/drive/folders/1x8uB0G7ZUu5aKFIsYPXEYdJ7qC1IyBS-?usp=sharing)
+
+After downloading, place the files inside a folder named `models/` in the project root:
+
+```
+shrinkAI/
+├── compress.py
+├── decompress.py
+├── models/                ← ⬅️ Place pretrained weights here
+│   └── full_ffct_32in.pth
+```
+
+> ⚠️ Make sure the filenames match what the code expects. Refer to `compress.py` and `decompress.py` for exact model loading paths.
+
 ---
 
 ## 🚀 CLI Usage
@@ -117,7 +133,7 @@ python decompress.py --input compressed.bin --output test_output.png
 
 ---
 
-### 📸 Compression Example
+## 📸 Compression Example
 
 <div align="center">
   <table>
