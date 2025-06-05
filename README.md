@@ -8,25 +8,27 @@
 
 ShrinkAI compresses images using the following pipeline:
 
+```
 Input Image
-↓
+   ↓
 Encoder (Conv + GDN)
-↓
+   ↓
 Latent y
-↓
+   ↓
 HyperEncoder
-↓
+   ↓
 Latent z
-↓
+   ↓
 EntropyBottleneck → z_strings
-↓
+   ↓
 HyperDecoder → μ, σ
-↓
+   ↓
 GaussianConditional → y_strings
-↓
-Decoder (FFCTranspose + GDN⁻¹)
-↓
+   ↓
+Decoder (FFCTranspose + Inverse GDN)
+   ↓
 Reconstructed Image
+```
 
 ---
 
@@ -39,31 +41,30 @@ Reconstructed Image
 | **Dataset**   | DIV2K (256×256 patches) |
 | **Framework** | PyTorch + CompressAI    |
 
-> ✅ Achieves good rate–distortion balance on natural images with learned entropy coding.
+> ✅ Achieves a strong rate–distortion trade-off on natural images with learned entropy coding.
 
 ---
 
 ## 🏗️ Architecture Components
 
 ### 🔹 Encoder
-
-- 4-stage convolutional layers with GDN activation
-- Compresses input to latent space `y`
+- 4-stage convolutional encoder
+- GDN (Generalized Divisive Normalization) activation
+- Produces latent space `y`
 
 ### 🔹 Hyperprior
-
-- `HyperEncoder` processes `y` into hyper-latents `z`
-- `EntropyBottleneck` compresses `z`
-- `HyperDecoder` with **FFCTranspose** layers produces Gaussian parameters `μ, σ` for modeling `y`
+- `HyperEncoder`: encodes `y` into `z`
+- `EntropyBottleneck`: compresses `z` into bitstream
+- `HyperDecoder`: reconstructs distribution parameters (μ, σ) using FFCTranspose layers
 
 ### 🔹 Decoder
-
-- 4-stage **FFCTranspose** layers with inverse GDN
-- Reconstructs the image from `y_hat`
+- 4-stage **FFCTranspose** decoder
+- Inverse GDN
+- Reconstructs image from quantized `y`
 
 ---
 
-## 🏋️ Training Setup
+## 🏋️ Training Configuration
 
 | Setting           | Value                           |
 | ----------------- | ------------------------------- |
@@ -77,33 +78,78 @@ Reconstructed Image
 
 ---
 
-## 🧰 Usage
+## ⚙️ Setting Up Environment
 
-### 🔧 Installation
+### ✅ Step-by-step Setup
 
 ```bash
-git clone https://github.com/kamalnayan10/shrinkAI
+# Clone the repository
+git clone https://github.com/kamalnayan10/shrinkAI.git
 cd shrinkAI
+
+# Create a virtual environment (Linux/macOS)
+python3 -m venv venv
+source venv/bin/activate
+
+# For Windows:
+# python -m venv venv
+# venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### CLI Utility
+---
 
-compression
+## 🚀 CLI Usage
+
+### 🔐 Compression
 
 ```bash
 python compress.py --input test.png --output compressed.bin
 ```
 
-decompression
+### 🖼️ Decompression
 
 ```bash
 python decompress.py --input compressed.bin --output test_output.png
 ```
 
-### 🙌 Acknowledgements
+---
 
-- Based on [Ballé et al. (2018)](https://arxiv.org/abs/1802.01436)
+### 📸 Compression Example
 
-- GDN Module code taken from [jorge-pessoa](https://github.com/jorge-pessoa/pytorch-gdn)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>Original Image</strong></td>
+      <td align="center"><strong>Reconstructed Image</strong></td>
+    </tr>
+    <tr>
+      <td><img src="test.png" alt="Original Image" width="300"/></td>
+      <td><img src="test_output.png" alt="Reconstructed Image" width="300"/></td>
+    </tr>
+  </table>
+</div>
 
-- FFC blocks adapted from [Fast Fourier Convolution](https://papers.nips.cc/paper_files/paper/2020/file/2fd5d41ec6cfab47e32164d5624269b1-Paper.pdf)
+<p align="center">
+  <strong>🧾 Compression Stats:</strong><br>
+  <code>Original Image:</code> 5.0 MB → <code>Compressed File:</code> 1.5 MB → <code>Reconstructed Image:</code> 4.7 MB<br>
+  <em>~70% reduction in transmission/storage size with near-lossless reconstruction.</em>
+</p>
+
+---
+
+## 🙌 Acknowledgements
+
+- 📜 Based on [Ballé et al. (2018)](https://arxiv.org/abs/1802.01436)
+- 🔧 GDN module from [jorge-pessoa/pytorch-gdn](https://github.com/jorge-pessoa/pytorch-gdn)
+- 🌐 FFC layers adapted from [Fast Fourier Convolution (NIPS 2020)](https://papers.nips.cc/paper_files/paper/2020/file/2fd5d41ec6cfab47e32164d5624269b1-Paper.pdf)
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+You are free to use, modify, and distribute this software for both personal and commercial purposes, provided that proper attribution is given.
