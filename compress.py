@@ -11,8 +11,11 @@ from utils import load_checkpoint, pad_to_multiple
 from config import *
 
 
-def preprocess_and_pad(image_path: str, device: torch.device):
-
+def preprocess_and_pad(image_path: str, device: torch.device, multiple = 32):
+    """
+    Normalise image and add padding to image before feeding to the encoder
+    """
+    
     to_tensor = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5],
@@ -21,7 +24,7 @@ def preprocess_and_pad(image_path: str, device: torch.device):
 
     img = Image.open(image_path).convert("RGB")
     x = to_tensor(img).unsqueeze(0).to(device)
-    x_padded, orig_shape = pad_to_multiple(x, multiple=64)
+    x_padded, orig_shape = pad_to_multiple(x, multiple=multiple)
     return x_padded, orig_shape
 
 
@@ -30,6 +33,9 @@ def generate_scale_table(min_scale=0.11, max_scale=256, levels=64):
     return torch.exp(torch.linspace(math.log(min_scale), math.log(max_scale), levels))
 
 def compress_image(model, x: torch.Tensor, orig_shape: tuple, output_path: str):
+    """
+    Function to compress image file to a compressed .bin file using the trained encoder
+    """
 
     model.entropy_bottleneck.update()
 
@@ -80,9 +86,9 @@ def main():
     device = DEVICE
 
     model = Compression(3,32,192,3, device = device).to(device)
-    load_checkpoint(model, None, "good_models/full_ffct_32in.pth", device)
+    load_checkpoint(model, None, "models/full_ffct_32in.pth", device)
 
-    x_padded, orig_shape = preprocess_and_pad(args.input, device)
+    x_padded, orig_shape = preprocess_and_pad(args.input, device, 32)
 
     compress_image(model, x_padded, orig_shape, args.output)
 

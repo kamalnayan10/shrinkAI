@@ -7,12 +7,13 @@ from compression_model import Compression
 from utils import load_checkpoint
 import math
 from config import *
-
-def generate_scale_table(min_scale=0.11, max_scale=256, levels=64):
-    return torch.exp(torch.linspace(math.log(min_scale), math.log(max_scale), levels))
+from compress import generate_scale_table
 
 
 def decompress_image(model, compressed, device):
+    """
+    Function to decompress .bin file to reconstruct the original image using the trained decoder
+    """
     z_strings = compressed["z_strings"]
     y_strings = compressed["y_strings"]
     z_shape = compressed["z_shape"]
@@ -59,7 +60,7 @@ def main():
     device = DEVICE 
 
     model = Compression(3,32,192,3,device = device).to(device)
-    load_checkpoint(model, None, "good_models/full_ffct_32in.pth", device)
+    load_checkpoint(model, None, "models/full_ffct_32in.pth", device)
 
     with open(args.input, "rb") as f:
         compressed = pickle.load(f)
