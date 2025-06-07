@@ -8,7 +8,7 @@
 
 ShrinkAI's custom model architecture
 
-<img src="image.png" alt="Original Image"/>
+<img src="architecture.png" alt="Original Image"/>
 
 ---
 
