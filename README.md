@@ -6,29 +6,9 @@
 
 ## 🧠 Model Overview
 
-ShrinkAI compresses images using the following pipeline:
+ShrinkAI's custom model architecture
 
-```
-Input Image
-   ↓
-Encoder (Conv + GDN)
-   ↓
-Latent y
-   ↓
-HyperEncoder
-   ↓
-Latent z
-   ↓
-EntropyBottleneck → z_strings
-   ↓
-HyperDecoder → μ, σ
-   ↓
-GaussianConditional → y_strings
-   ↓
-Decoder (FFCTranspose + Inverse GDN)
-   ↓
-Reconstructed Image
-```
+<img src="image.png" alt="Original Image"/>
 
 ---
 
